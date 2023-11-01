@@ -37,6 +37,6 @@ jobs:
           
           mvn --version
 
-          cd /home/runner/work/2023-autumn-ab-java-hse-hw-1-zemlianin/2023-autumn-ab-java-hse-hw-1-zemlianin
+          cd /home/runner/work/2023-autumn-ab-java-hse-hw-6-zemlianin/2023-autumn-ab-java-hse-hw-6-zemlianin
           mvn clean install --file pom.xml 
 
