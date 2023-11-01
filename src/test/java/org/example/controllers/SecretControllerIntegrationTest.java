@@ -64,7 +64,7 @@ public class SecretControllerIntegrationTest {
         var secretRequest = new SecretRequest("a", "a", "a", "a");
 
         var response = restTemplate.postForEntity(uri, secretRequest, SecretResponse.class);
-        assertEquals(HttpStatus.CREATED, response.getBody().getStatus());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("a", response.getBody().getSecret().getName());
         assertEquals("a", response.getBody().getSecret().getUrl());
         assertEquals("a", response.getBody().getSecret().getLogin());
@@ -78,7 +78,7 @@ public class SecretControllerIntegrationTest {
         dataAccess.addSecret(new Secret("b", "b", "b", "b"));
 
         var response = restTemplate.getForEntity(uri, ListSecretsResponse.class);
-        assertEquals(HttpStatus.OK, response.getBody().getStatus());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().getSecrets().size());
     }
 
@@ -89,7 +89,7 @@ public class SecretControllerIntegrationTest {
         dataAccess.addSecret(new Secret("b", "b", "b", "b"));
 
         var response = restTemplate.getForEntity(uri, ListSecretsResponse.class);
-        assertEquals(HttpStatus.OK, response.getBody().getStatus());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getSecrets().size());
     }
 
@@ -101,7 +101,7 @@ public class SecretControllerIntegrationTest {
         var id = secret.getId();
         var uri = new URI(baseUrl + "/get?id=" + id);
         var response = restTemplate.getForEntity(uri, SecretResponse.class);
-        assertEquals(HttpStatus.OK, response.getBody().getStatus());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(secret.getName(), response.getBody().getSecret().getName());
     }
 
@@ -110,7 +110,7 @@ public class SecretControllerIntegrationTest {
         var id = UUID.randomUUID();
         var uri = new URI(baseUrl + "/get?id=" + id);
         var response = restTemplate.getForEntity(uri, SecretResponse.class);
-        assertEquals(HttpStatus.NOT_FOUND, response.getBody().getStatus());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     /*

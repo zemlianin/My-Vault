@@ -8,8 +8,7 @@ public class SecretResponse extends BaseResponse {
     public SecretResponse() {
     }
 
-    public SecretResponse(HttpStatus status, Secret secret) {
-        super(status);
+    public SecretResponse(Secret secret) {
         this.secret = secret;
     }
 

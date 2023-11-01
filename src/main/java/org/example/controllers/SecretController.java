@@ -5,6 +5,7 @@ import org.example.services.DataAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -25,54 +26,53 @@ public class SecretController {
     }
 
     @PostMapping("/create")
-    public SecretResponse createNewSecret(@RequestBody SecretRequest request) {
+    public ResponseEntity<SecretResponse> createNewSecret(@RequestBody SecretRequest request) {
         if (request.getName() == null || request.getUrl() == null || request.getPassword() == null) {
-            var badResponse = new SecretResponse(HttpStatus.BAD_REQUEST, null);
+            var badResponse = new SecretResponse(null);
             badResponse.setDescription("One or more fields are missing. All fields are mandatory.");
-            return badResponse;
+            return new ResponseEntity<>(badResponse, HttpStatus.BAD_REQUEST);
         }
         var secret = new Secret(request);
-        dataAccess.addSecret(secret);
-        return new SecretResponse(HttpStatus.CREATED, secret);
+        var secretCreated = dataAccess.addSecret(secret);
+        return new ResponseEntity<>(new SecretResponse(secretCreated), HttpStatus.CREATED);
     }
 
     @GetMapping("/get_all")
-    public ListSecretsResponse getAll() {
-        return new ListSecretsResponse(dataAccess.getAllSecrets(), HttpStatus.OK);
+    public ResponseEntity<ListSecretsResponse> getAll() {
+        return new ResponseEntity<>(new ListSecretsResponse(dataAccess.getAllSecrets()), HttpStatus.OK);
     }
 
     @GetMapping("/get_all_paginate")
-    public ListSecretsResponse getAll(@RequestParam(defaultValue = "0") int page,
-                                      @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<ListSecretsResponse> getAll(@RequestParam(defaultValue = "0") int page,
+                                                      @RequestParam(defaultValue = "10") int size) {
         var pageable = PageRequest.of(page, size);
         var secretsPage = dataAccess.getAllSecrets(pageable);
-        var response = new ListSecretsResponse(secretsPage.getContent(), HttpStatus.OK);
-
-        return response;
+        return new ResponseEntity<>(new ListSecretsResponse(secretsPage.getContent()), HttpStatus.OK);
     }
 
     @GetMapping("/get")
-    public SecretResponse get(@RequestParam(value = "id") UUID id) {
+    public ResponseEntity<SecretResponse> get(@RequestParam(value = "id") UUID id) {
         var secret = dataAccess.getSecret(id);
 
         if (secret.isEmpty()) {
-            return new SecretResponse(HttpStatus.NOT_FOUND, null);
+            return new ResponseEntity<>(new SecretResponse(null), HttpStatus.NOT_FOUND);
         }
 
-        return new SecretResponse(HttpStatus.OK, secret.get());
+        return new ResponseEntity<>(new SecretResponse(secret.get()), HttpStatus.OK);
     }
 
     @PatchMapping("/change")
-    public SecretResponse patch(@RequestParam(value = "id") UUID id, @RequestBody SecretRequest request) {
+    public ResponseEntity<SecretResponse> patch(@RequestParam(value = "id") UUID id, @RequestBody SecretRequest request) {
         var secret = dataAccess.getSecret(id);
 
         if (secret.isEmpty()) {
-            return new SecretResponse(HttpStatus.NOT_FOUND, null);
+            return new ResponseEntity<>(new SecretResponse(null), HttpStatus.NOT_FOUND);
         }
 
         var presentSecret = secret.get();
 
         presentSecret.changeSecret(request);
-        return new SecretResponse(HttpStatus.OK, presentSecret);
+
+        return new ResponseEntity<>(new SecretResponse(presentSecret), HttpStatus.OK);
     }
 }

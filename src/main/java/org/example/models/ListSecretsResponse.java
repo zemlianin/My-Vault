@@ -8,8 +8,10 @@ import java.util.List;
 public class ListSecretsResponse extends BaseResponse {
     List<HideVersionOfSecret> secrets;
 
-    public ListSecretsResponse(List<HideVersionOfSecret> secrets, HttpStatus status) {
-        super(status);
+    public ListSecretsResponse() {
+    }
+
+    public ListSecretsResponse(List<HideVersionOfSecret> secrets) {
         this.secrets = secrets;
     }
 
