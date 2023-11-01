@@ -26,6 +26,11 @@ public class SecretController {
 
     @PostMapping("/create")
     public SecretResponse createNewSecret(@RequestBody SecretRequest request) {
+        if (request.getName() == null || request.getUrl() == null || request.getPassword() == null) {
+            var badResponse = new SecretResponse(HttpStatus.BAD_REQUEST, null);
+            badResponse.setDescription("One or more fields are missing. All fields are mandatory.");
+            return badResponse;
+        }
         var secret = new Secret(request);
         dataAccess.addSecret(secret);
         return new SecretResponse(HttpStatus.CREATED, secret);
