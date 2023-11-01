@@ -1,0 +1,34 @@
+spring:
+  profiles.active: dev
+---
+spring:
+  activate:
+    on-profile: dev
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 5
+  h2:
+    console:
+      enabled: true
+---
+spring:
+  activate:
+    on-profile: test
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+    hikari:
+      connection-timeout: 2000
+      maximum-pool-size: 2
+  h2:
+    console:
+      enabled: true

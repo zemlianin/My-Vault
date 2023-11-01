@@ -11,13 +11,32 @@ permissions:
 
 jobs:
   build:
-    name: Autograding
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: github.actor != 'github-classroom[bot]'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'corretto'
-          java-version: '17'
-      - uses: education/autograding@v1
+      - uses: actions/checkout@v2
+
+      - name: java install and maven tests
+        run: |
+          wget https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_linux-x64_bin.tar.gz
+          tar xvf openjdk-17.0.2_linux-x64_bin.tar.gz
+          sudo mv jdk-17.0.2/ /opt/jdk-17/
+          echo 'export JAVA_HOME=/opt/jdk-17' | sudo tee /etc/profile.d/java17.sh
+          echo 'export PATH=$JAVA_HOME/bin:$PATH'|sudo tee -a /etc/profile.d/java17.sh
+          source /etc/profile.d/java17.sh
+          echo $JAVA_HOME
+          java --version
+
+          wget https://dlcdn.apache.org/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz
+          tar -xvf apache-maven-3.9.4-bin.tar.gz
+          mv apache-maven-3.9.4 /opt/
+
+          M2_HOME='/opt/apache-maven-3.9.4'
+          PATH="$M2_HOME/bin:$PATH"
+          export PATH
+          
+          mvn --version
+
+          cd /home/runner/work/2023-autumn-ab-java-hse-hw-1-zemlianin/2023-autumn-ab-java-hse-hw-1-zemlianin
+          mvn clean install --file pom.xml 
+
