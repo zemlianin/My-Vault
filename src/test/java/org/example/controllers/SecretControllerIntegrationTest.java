@@ -72,6 +72,15 @@ public class SecretControllerIntegrationTest {
     }
 
     @Test
+    public void testCreateWithoutArguments() throws URISyntaxException {
+        var uri = new URI(baseUrl + "/create");
+        var secretRequest = new SecretRequest(null, "a", null, "a");
+
+        var response = restTemplate.postForEntity(uri, secretRequest, SecretResponse.class);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
     public void testGetAll() throws URISyntaxException {
         var uri = new URI(baseUrl + "/get_all");
         dataAccess.addSecret(new Secret("a", "a", "a", "a"));
@@ -143,7 +152,7 @@ public class SecretControllerIntegrationTest {
         var response = httpClient.execute(httpPatch);
 
         int statusCode = response.getStatusLine().getStatusCode();
-        assertEquals(200, statusCode);
+        assertEquals(        HttpStatus.OK.value(), statusCode);
 
         var responseEntity = response.getEntity();
         var responseBody = EntityUtils.toString(responseEntity);

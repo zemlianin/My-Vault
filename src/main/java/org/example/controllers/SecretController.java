@@ -13,7 +13,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/secret")
 public class SecretController {
-    private DataAccess dataAccess;
+    final private DataAccess dataAccess;
 
     @Autowired
     public SecretController(DataAccess dataAccess) {
@@ -27,7 +27,7 @@ public class SecretController {
 
     @PostMapping("/create")
     public ResponseEntity<SecretResponse> createNewSecret(@RequestBody SecretRequest request) {
-        if (request.getName() == null || request.getUrl() == null || request.getPassword() == null) {
+        if (request.getName() == null || request.getPassword() == null) {
             var badResponse = new SecretResponse(null);
             badResponse.setDescription("One or more fields are missing. All fields are mandatory.");
             return new ResponseEntity<>(badResponse, HttpStatus.BAD_REQUEST);

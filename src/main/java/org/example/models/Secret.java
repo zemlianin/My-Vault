@@ -1,5 +1,6 @@
 package org.example.models;
 
+import com.mysql.cj.exceptions.WrongArgumentException;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -36,6 +37,9 @@ public class Secret {
     }
 
     public void changeSecret(SecretRequest request) {
+        if (request.getName() == null || request.getPassword() == null) {
+            throw new WrongArgumentException();
+        }
         name = request.getName();
         url = request.url;
         password = request.getPassword();

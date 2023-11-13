@@ -3,8 +3,8 @@ package org.example.models;
 import java.util.UUID;
 
 public class HideVersionOfSecret {
-    UUID id;
-    String name;
+    private UUID id;
+    private String name;
 
     public HideVersionOfSecret() {
     }

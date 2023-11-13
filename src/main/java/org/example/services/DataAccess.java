@@ -5,15 +5,13 @@ import org.example.models.Secret;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
-@Component
+@Service
 public class DataAccess {
-    SecretRepository secretRepository;
+    final private SecretRepository secretRepository;
 
     public DataAccess(SecretRepository secretRepository) {
         this.secretRepository = secretRepository;
@@ -35,7 +33,7 @@ public class DataAccess {
     }
 
     public Page<HideVersionOfSecret> getAllSecrets(PageRequest pageRequest) {
-        var collection = secretRepository.findAll();
+        var collection = secretRepository.findAll(pageRequest);
         var secrets = collection.stream()
                 .map(HideVersionOfSecret::new)
                 .toList();

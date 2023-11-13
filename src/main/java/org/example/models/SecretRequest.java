@@ -1,7 +1,5 @@
 package org.example.models;
 
-import java.util.UUID;
-
 public class SecretRequest {
     String name;
     String url;
