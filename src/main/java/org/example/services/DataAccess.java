@@ -38,17 +38,7 @@ public class DataAccess {
                 .map(HideVersionOfSecret::new)
                 .toList();
 
-        int total = secrets.size();
-        int start = (int) pageRequest.getOffset();
-        int end = Math.min((start + pageRequest.getPageSize()), total);
-
-        List<HideVersionOfSecret> sublist = Collections.emptyList();
-
-        if (start <= end) {
-            sublist = secrets.subList(start, end);
-        }
-
-        return new PageImpl<>(sublist, pageRequest, total);
+        return new PageImpl<>(secrets, pageRequest, secrets.size());
     }
 
     public Optional<Secret> getSecret(UUID id) {
