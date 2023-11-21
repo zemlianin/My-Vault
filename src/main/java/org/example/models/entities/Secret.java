@@ -1,10 +1,8 @@
-package org.example.models;
+package org.example.models.entities;
 
 import com.mysql.cj.exceptions.WrongArgumentException;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import org.example.models.dao.SecretRequest;
 
 import java.util.UUID;
 
@@ -17,6 +15,10 @@ public class Secret {
     String login;
     String url;
     String password;
+
+    @ManyToOne()
+    @JoinColumn(name = "user_id")
+    User user;
 
     public Secret() {
     }
@@ -31,7 +33,7 @@ public class Secret {
     public Secret(SecretRequest request) {
         id = UUID.randomUUID();
         name = request.getName();
-        url = request.url;
+        url = request.getUrl();
         password = request.getPassword();
         login = request.getLogin();
     }
@@ -41,11 +43,18 @@ public class Secret {
             throw new WrongArgumentException();
         }
         name = request.getName();
-        url = request.url;
+        url = request.getUrl();
         password = request.getPassword();
         login = request.getLogin();
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
     public String getLogin() {
         return login;
     }

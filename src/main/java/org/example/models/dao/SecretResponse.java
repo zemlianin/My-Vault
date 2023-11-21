@@ -1,6 +1,6 @@
-package org.example.models;
+package org.example.models.dao;
 
-import org.springframework.http.HttpStatus;
+import org.example.models.entities.Secret;
 
 public class SecretResponse extends BaseResponse {
     Secret secret;

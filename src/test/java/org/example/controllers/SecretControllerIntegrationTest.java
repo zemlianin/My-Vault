@@ -5,9 +5,12 @@ import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.example.models.*;
-import org.example.services.DataAccess;
+import org.example.models.dao.*;
+import org.example.models.entities.Secret;
+import org.example.models.entities.User;
+import org.example.services.SecretDataAccess;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,27 +36,56 @@ public class SecretControllerIntegrationTest {
 
     private final TestRestTemplate restTemplate;
 
-    private final DataAccess dataAccess;
+    private final SecretDataAccess secretDataAccess;
+
+    private String token;
 
     @Autowired
-    public SecretControllerIntegrationTest(TestRestTemplate testRestTemplate, DataAccess dataAccess) {
+    public SecretControllerIntegrationTest(TestRestTemplate testRestTemplate, SecretDataAccess secretDataAccess) {
         this.restTemplate = testRestTemplate;
-        this.dataAccess = dataAccess;
+        this.secretDataAccess = secretDataAccess;
     }
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    private String authToken;
 
     @BeforeEach
-    public void setUp() {
-        baseUrl = "http://localhost:" + randomServerPort + "/secret";
+    void setUp() {
+        // Perform signup and signin to get the authentication token
+        baseUrl = "http://localhost:" + randomServerPort + "/api/v1/resource/secret";
+        SignUpRequest signUpRequest = new SignUpRequest("testuser", "password");
+        restTemplate.postForEntity("/api/v1/auth/signup", signUpRequest, Void.class);
+
+        SignInRequest signInRequest = new SignInRequest("testuser", "password");
+        ResponseEntity<Void> signInResponse = restTemplate.postForEntity("/api/v1/auth/signin", signInRequest, Void.class);
+
+        assertEquals(HttpStatus.OK, signInResponse.getStatusCode());
+        assertNotNull(signInResponse.getHeaders().get("Authorization"));
+        authToken = signInResponse.getHeaders().get("Authorization").get(0);
+    }
+    @BeforeAll
+    public void signUp() throws URISyntaxException {
+
+        var uri = new URI( "/api/v1/auth/signup");
+
+        var request = new SignUpRequest("test", "test","test@test.ru", "test");
+        var response = restTemplate.postForEntity(uri, request, JwtAuthenticationResponse.class);
+        token = response.getBody().getToken();
     }
 
     @AfterEach
     public void resetDb() {
-        dataAccess.deleteAll();
+        secretDataAccess.deleteAllForAdmin();
     }
 
     @Test
     public void testPing() throws URISyntaxException {
         var uri = new URI(baseUrl + "/ping?key=1");
+        restTemplate
         var result = restTemplate.getForEntity(uri, Integer.class);
         assertEquals(2, result.getBody());
     }
@@ -83,8 +115,8 @@ public class SecretControllerIntegrationTest {
     @Test
     public void testGetAll() throws URISyntaxException {
         var uri = new URI(baseUrl + "/get_all");
-        dataAccess.addSecret(new Secret("a", "a", "a", "a"));
-        dataAccess.addSecret(new Secret("b", "b", "b", "b"));
+        secretDataAccess.addSecret(new Secret("a", "a", "a", "a"));
+        secretDataAccess.addSecret(new Secret("b", "b", "b", "b"));
 
         var response = restTemplate.getForEntity(uri, ListSecretsResponse.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -94,8 +126,8 @@ public class SecretControllerIntegrationTest {
     @Test
     public void testGetAllPaginate() throws URISyntaxException {
         var uri = new URI(baseUrl + "/get_all_paginate?page=0&size=1");
-        dataAccess.addSecret(new Secret("a", "a", "a", "a"));
-        dataAccess.addSecret(new Secret("b", "b", "b", "b"));
+        secretDataAccess.addSecret(new Secret("a", "a", "a", "a"));
+        secretDataAccess.addSecret(new Secret("b", "b", "b", "b"));
 
         var response = restTemplate.getForEntity(uri, ListSecretsResponse.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -105,7 +137,7 @@ public class SecretControllerIntegrationTest {
     @Test
     public void testGet() throws URISyntaxException {
         var secret = new Secret("a", "a", "a", "a");
-        secret.setId(dataAccess.addSecret(secret).getId());
+        secret.setId(secretDataAccess.addSecret(secret).getId());
 
         var id = secret.getId();
         var uri = new URI(baseUrl + "/get?id=" + id);
@@ -137,7 +169,7 @@ public class SecretControllerIntegrationTest {
     @Test
     public void testChange() throws IOException {
         var secret = new Secret("a", "a", "a", "a");
-        secret.setId(dataAccess.addSecret(secret).getId());
+        secret.setId(secretDataAccess.addSecret(secret).getId());
 
         var id = secret.getId();
         var uri = baseUrl + "/change?id=" + id;

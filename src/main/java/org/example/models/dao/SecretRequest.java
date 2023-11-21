@@ -1,4 +1,4 @@
-package org.example.models;
+package org.example.models.dao;
 
 public class SecretRequest {
     String name;

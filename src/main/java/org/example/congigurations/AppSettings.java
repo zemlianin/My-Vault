@@ -1,4 +1,4 @@
-package org.example;
+package org.example.congigurations;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

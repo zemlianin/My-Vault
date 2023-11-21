@@ -1,5 +1,7 @@
 package org.example.models;
 
+import org.example.models.entities.Secret;
+
 import java.util.UUID;
 
 public class HideVersionOfSecret {
@@ -10,8 +12,8 @@ public class HideVersionOfSecret {
     }
 
     public HideVersionOfSecret(Secret secret) {
-        id = secret.id;
-        name = secret.name;
+        id = secret.getId();
+        name = secret.getName();
     }
 
     public String getName() {

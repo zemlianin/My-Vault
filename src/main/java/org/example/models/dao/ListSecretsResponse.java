@@ -1,8 +1,8 @@
-package org.example.models;
+package org.example.models.dao;
 
-import org.springframework.http.HttpStatus;
+import org.example.models.HideVersionOfSecret;
+import org.example.models.dao.BaseResponse;
 
-import java.net.http.HttpClient;
 import java.util.List;
 
 public class ListSecretsResponse extends BaseResponse {
