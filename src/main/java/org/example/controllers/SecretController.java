@@ -39,6 +39,7 @@ public class SecretController {
         }
         var secret = new Secret(request);
         var secretCreated = secretDataAccess.addSecret(user, secret);
+        secretCreated.setUser(null);
         return new ResponseEntity<>(new SecretResponse(secretCreated), HttpStatus.CREATED);
     }
 
@@ -81,6 +82,7 @@ public class SecretController {
         var presentSecret = secret.get();
 
         presentSecret.changeSecret(request);
+        presentSecret.setUser(null);
 
         return new ResponseEntity<>(new SecretResponse(presentSecret), HttpStatus.OK);
     }

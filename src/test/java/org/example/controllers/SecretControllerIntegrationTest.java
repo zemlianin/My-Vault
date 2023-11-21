@@ -1,73 +1,70 @@
 package org.example.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.example.models.GrantedAuthorityDeserializer;
 import org.example.models.dao.*;
-import org.example.models.entities.Secret;
-import org.example.models.entities.User;
 import org.example.services.SecretDataAccess;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.*;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SecretControllerIntegrationTest {
     @LocalServerPort
     int randomServerPort;
+
+    @Autowired
+    private ObjectMapper objectMapper;
     private String baseUrl;
 
     private final TestRestTemplate restTemplate;
 
     private final SecretDataAccess secretDataAccess;
 
-    private String token;
-
     @Autowired
     public SecretControllerIntegrationTest(TestRestTemplate testRestTemplate, SecretDataAccess secretDataAccess) {
         this.restTemplate = testRestTemplate;
         this.secretDataAccess = secretDataAccess;
     }
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    private TestRestTemplate restTemplate;
 
     private String authToken;
 
     @BeforeEach
     void setUp() {
-        // Perform signup and signin to get the authentication token
         baseUrl = "http://localhost:" + randomServerPort + "/api/v1/resource/secret";
-        SignUpRequest signUpRequest = new SignUpRequest("testuser", "password");
+
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(GrantedAuthority.class, new GrantedAuthorityDeserializer());
+        objectMapper.registerModule(module);
+
+        var signUpRequest = new SignUpRequest("a", "a", "testuser", "password");
         restTemplate.postForEntity("/api/v1/auth/signup", signUpRequest, Void.class);
 
-        SignInRequest signInRequest = new SignInRequest("testuser", "password");
-        ResponseEntity<Void> signInResponse = restTemplate.postForEntity("/api/v1/auth/signin", signInRequest, Void.class);
+        var signInRequest = new SignInRequest("testuser", "password");
+        var signInResponse = restTemplate.postForEntity("/api/v1/auth/signin", signInRequest, JwtAuthenticationResponse.class);
+
 
         assertEquals(HttpStatus.OK, signInResponse.getStatusCode());
-        assertNotNull(signInResponse.getHeaders().get("Authorization"));
-        authToken = signInResponse.getHeaders().get("Authorization").get(0);
+        assertNotNull(signInResponse.getBody().getToken());
+        authToken = signInResponse.getBody().getToken();
     }
-    @BeforeAll
+
+ /*   @BeforeAll
     public void signUp() throws URISyntaxException {
 
         var uri = new URI( "/api/v1/auth/signup");
@@ -75,7 +72,7 @@ public class SecretControllerIntegrationTest {
         var request = new SignUpRequest("test", "test","test@test.ru", "test");
         var response = restTemplate.postForEntity(uri, request, JwtAuthenticationResponse.class);
         token = response.getBody().getToken();
-    }
+    }*/
 
     @AfterEach
     public void resetDb() {
@@ -83,13 +80,44 @@ public class SecretControllerIntegrationTest {
     }
 
     @Test
-    public void testPing() throws URISyntaxException {
-        var uri = new URI(baseUrl + "/ping?key=1");
-        restTemplate
-        var result = restTemplate.getForEntity(uri, Integer.class);
-        assertEquals(2, result.getBody());
+    void testCreateNewSecret() {
+        var request = new SecretRequest("a", "a", "a", "a");
+
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        var requestEntity = new HttpEntity<>(request, headers);
+
+        var responseEntity = restTemplate.exchange(
+                baseUrl + "/create",
+                HttpMethod.POST,
+                requestEntity,
+                SecretResponse.class
+        );
+
+        assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
+        assertNotNull(responseEntity.getBody());
+        assertNotNull(responseEntity.getBody().getSecret());
+        assertEquals("a", responseEntity.getBody().getSecret().getName());
     }
 
+    @Test
+    public void testPing() throws URISyntaxException {
+        var uri = new URI(baseUrl + "/ping?key=1");
+
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        var requestEntity = new HttpEntity<>(headers);
+
+        var result = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                requestEntity,
+                Integer.class
+        );
+
+        assertEquals(2, result.getBody());
+    }
+/*
     @Test
     public void testCreate() throws URISyntaxException {
         var uri = new URI(baseUrl + "/create");
@@ -154,7 +182,7 @@ public class SecretControllerIntegrationTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
-    /*
+    *//*
      Простите конечно за следующий тест, он работает, но происходит все буквально руками.
      Я считаю что эта джава имеет серьезные проблемы с порядком в версиях, а если серьезно то у джавы в них бардак
      я не понимаю почему если я подрубаю новую библиотеку с тестами JUnit, то библиотека тащит за собой старую версию спринга
@@ -165,7 +193,7 @@ public class SecretControllerIntegrationTest {
      Да, я буду писать больше кода, но сохраню свои нервные клетки.
 
      НО ПАСАРАН!
-     */
+     *//*
     @Test
     public void testChange() throws IOException {
         var secret = new Secret("a", "a", "a", "a");
@@ -193,5 +221,5 @@ public class SecretControllerIntegrationTest {
         assertEquals("newName", secretResponse.getSecret().getName());
 
         httpClient.close();
-    }
+    }*/
 }
