@@ -30,7 +30,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http/*, MvcRequestMatcher.Builder mvc*/) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request.requestMatchers(antMatcher("/api/v1/auth/**"))
                         .permitAll().anyRequest().authenticated())

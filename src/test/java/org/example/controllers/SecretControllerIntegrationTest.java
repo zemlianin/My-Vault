@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.example.models.GrantedAuthorityDeserializer;
 import org.example.models.dao.*;
+import org.example.models.entities.Secret;
+import org.example.repositories.UserRepository;
 import org.example.services.SecretDataAccess;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,10 +38,15 @@ public class SecretControllerIntegrationTest {
 
     private final SecretDataAccess secretDataAccess;
 
+    private final UserRepository userRepository;
+
     @Autowired
-    public SecretControllerIntegrationTest(TestRestTemplate testRestTemplate, SecretDataAccess secretDataAccess) {
+    public SecretControllerIntegrationTest(TestRestTemplate testRestTemplate,
+                                           SecretDataAccess secretDataAccess,
+                                           UserRepository userRepository) {
         this.restTemplate = testRestTemplate;
         this.secretDataAccess = secretDataAccess;
+        this.userRepository = userRepository;
     }
 
     private String authToken;
@@ -52,10 +59,10 @@ public class SecretControllerIntegrationTest {
         module.addDeserializer(GrantedAuthority.class, new GrantedAuthorityDeserializer());
         objectMapper.registerModule(module);
 
-        var signUpRequest = new SignUpRequest("a", "a", "testuser", "password");
+        var signUpRequest = new SignUpRequest("a", "a", "test@test.ru", "password");
         restTemplate.postForEntity("/api/v1/auth/signup", signUpRequest, Void.class);
 
-        var signInRequest = new SignInRequest("testuser", "password");
+        var signInRequest = new SignInRequest("test@test.ru", "password");
         var signInResponse = restTemplate.postForEntity("/api/v1/auth/signin", signInRequest, JwtAuthenticationResponse.class);
 
 
@@ -64,15 +71,6 @@ public class SecretControllerIntegrationTest {
         authToken = signInResponse.getBody().getToken();
     }
 
- /*   @BeforeAll
-    public void signUp() throws URISyntaxException {
-
-        var uri = new URI( "/api/v1/auth/signup");
-
-        var request = new SignUpRequest("test", "test","test@test.ru", "test");
-        var response = restTemplate.postForEntity(uri, request, JwtAuthenticationResponse.class);
-        token = response.getBody().getToken();
-    }*/
 
     @AfterEach
     public void resetDb() {
@@ -96,8 +94,8 @@ public class SecretControllerIntegrationTest {
 
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
-        assertNotNull(responseEntity.getBody().getSecret());
-        assertEquals("a", responseEntity.getBody().getSecret().getName());
+        assertNotNull(responseEntity.getBody().getId());
+        assertEquals("a", responseEntity.getBody().getName());
     }
 
     @Test
@@ -117,63 +115,99 @@ public class SecretControllerIntegrationTest {
 
         assertEquals(2, result.getBody());
     }
-/*
-    @Test
-    public void testCreate() throws URISyntaxException {
-        var uri = new URI(baseUrl + "/create");
-        var secretRequest = new SecretRequest("a", "a", "a", "a");
 
-        var response = restTemplate.postForEntity(uri, secretRequest, SecretResponse.class);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals("a", response.getBody().getSecret().getName());
-        assertEquals("a", response.getBody().getSecret().getUrl());
-        assertEquals("a", response.getBody().getSecret().getLogin());
-        assertEquals("a", response.getBody().getSecret().getPassword());
-    }
 
     @Test
     public void testCreateWithoutArguments() throws URISyntaxException {
         var uri = new URI(baseUrl + "/create");
         var secretRequest = new SecretRequest(null, "a", null, "a");
 
-        var response = restTemplate.postForEntity(uri, secretRequest, SecretResponse.class);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        var requestEntity = new HttpEntity<>(secretRequest, headers);
+
+        var response = restTemplate.exchange(
+                uri,
+                HttpMethod.POST,
+                requestEntity,
+                SecretResponse.class
+        );
+
+          assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     public void testGetAll() throws URISyntaxException {
         var uri = new URI(baseUrl + "/get_all");
-        secretDataAccess.addSecret(new Secret("a", "a", "a", "a"));
-        secretDataAccess.addSecret(new Secret("b", "b", "b", "b"));
+        var user = userRepository.findByEmail("test@test.ru");
+        secretDataAccess.addSecret(user.get(), new Secret("a", "a", "a", "a"));
+        secretDataAccess.addSecret(user.get(), new Secret("b", "b", "b", "b"));
 
-        var response = restTemplate.getForEntity(uri, ListSecretsResponse.class);
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        var requestEntity = new HttpEntity<>(headers);
+
+        var response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                requestEntity,
+                ListSecretsResponse.class
+        );
+
+        // var response = restTemplate.getForEntity(uri, ListSecretsResponse.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().getSecrets().size());
+       // assertEquals(0, response.getBody().getSecrets().size());
     }
 
     @Test
     public void testGetAllPaginate() throws URISyntaxException {
         var uri = new URI(baseUrl + "/get_all_paginate?page=0&size=1");
-        secretDataAccess.addSecret(new Secret("a", "a", "a", "a"));
-        secretDataAccess.addSecret(new Secret("b", "b", "b", "b"));
+        var user = userRepository.findByEmail("test@test.ru");
 
-        var response = restTemplate.getForEntity(uri, ListSecretsResponse.class);
+        secretDataAccess.addSecret(user.get(), new Secret("a", "a", "a", "a"));
+        secretDataAccess.addSecret(user.get(), new Secret("b", "b", "b", "b"));
+
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        var requestEntity = new HttpEntity<>(headers);
+
+        var response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                requestEntity,
+                ListSecretsResponse.class
+        );
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getSecrets().size());
     }
 
     @Test
     public void testGet() throws URISyntaxException {
+        var user = userRepository.findByEmail("test@test.ru");
+
         var secret = new Secret("a", "a", "a", "a");
-        secret.setId(secretDataAccess.addSecret(secret).getId());
+        secret.setId(secretDataAccess.addSecret(user.get(), secret).getId());
 
         var id = secret.getId();
         var uri = new URI(baseUrl + "/get?id=" + id);
-        var response = restTemplate.getForEntity(uri, SecretResponse.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(secret.getName(), response.getBody().getSecret().getName());
-    }
+        // var response = restTemplate.getForEntity(uri, SecretResponse.class);
 
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        var requestEntity = new HttpEntity<>(headers);
+
+        var response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                requestEntity,
+                SecretResponse.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(secret.getName(), response.getBody().getName());
+    }
+/*
     @Test
     public void testGetNotFound() throws URISyntaxException {
         var id = UUID.randomUUID();

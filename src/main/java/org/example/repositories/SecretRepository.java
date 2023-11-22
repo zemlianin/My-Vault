@@ -11,8 +11,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SecretRepository extends JpaRepository<Secret, UUID> {
-    Optional<Secret> findByUser(User user);
-    Optional<Secret> findByUser(User user, PageRequest pageable);
+    List<Secret> findAllByUser(User user);
+    List<Secret> findAllByUser(User user, PageRequest pageable);
     Optional<Secret> findByIdAndUser(UUID id, User user);
-    Optional<Secret> deleteByUser(User user);
+    List<Secret> deleteAllByUser(User user);
 }

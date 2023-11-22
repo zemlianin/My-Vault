@@ -25,7 +25,7 @@ public class SecretDataAccess {
     }
 
     public void deleteAll(User user) {
-        secretRepository.deleteByUser(user);
+        secretRepository.deleteAllByUser(user);
     }
 
     public void deleteAllForAdmin() {
@@ -33,14 +33,15 @@ public class SecretDataAccess {
     }
 
     public List<HideVersionOfSecret> getAllSecrets(User user) {
-        var collection = secretRepository.findByUser(user);
+        var collection = secretRepository.findAllByUser(user);
         var secrets = collection.stream()
-                .map(HideVersionOfSecret::new).toList();
+                .map(HideVersionOfSecret::new)
+                .toList();
         return secrets;
     }
 
     public Page<HideVersionOfSecret> getAllSecrets(User user, PageRequest pageRequest) {
-        var collection = secretRepository.findByUser(user, pageRequest);
+        var collection = secretRepository.findAllByUser(user, pageRequest);
         var secrets = collection.stream()
                 .map(HideVersionOfSecret::new)
                 .toList();
