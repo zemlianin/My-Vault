@@ -1,9 +1,9 @@
 package org.example.controllers;
 
 import org.example.services.AuthenticationService;
-import org.example.models.dao.JwtAuthenticationResponse;
-import org.example.models.dao.SignInRequest;
-import org.example.models.dao.SignUpRequest;
+import org.example.models.dao.response.JwtAuthenticationResponse;
+import org.example.models.dao.request.SignInRequest;
+import org.example.models.dao.request.SignUpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

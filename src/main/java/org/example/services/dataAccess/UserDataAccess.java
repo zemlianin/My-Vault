@@ -1,6 +1,7 @@
-package org.example.services;
+package org.example.services.dataAccess;
 
 import org.example.repositories.UserRepository;
+import org.example.services.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

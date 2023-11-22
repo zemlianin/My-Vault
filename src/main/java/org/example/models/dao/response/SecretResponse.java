@@ -1,4 +1,4 @@
-package org.example.models.dao;
+package org.example.models.dao.response;
 
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;

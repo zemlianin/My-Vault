@@ -1,7 +1,7 @@
-package org.example.models.dao;
+package org.example.models.dao.response;
 
 import org.example.models.HideVersionOfSecret;
-import org.example.models.dao.BaseResponse;
+import org.example.models.dao.response.BaseResponse;
 
 import java.util.List;
 

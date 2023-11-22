@@ -2,7 +2,7 @@ package org.example.models.entities;
 
 import com.mysql.cj.exceptions.WrongArgumentException;
 import jakarta.persistence.*;
-import org.example.models.dao.SecretRequest;
+import org.example.models.dao.request.SecretRequest;
 
 import java.util.UUID;
 

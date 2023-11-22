@@ -1,4 +1,4 @@
-package org.example.models.dao;
+package org.example.models.dao.request;
 
 public class SignUpRequest {
     private String firstName;

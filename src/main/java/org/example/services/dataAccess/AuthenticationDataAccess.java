@@ -1,11 +1,13 @@
-package org.example.services;
+package org.example.services.dataAccess;
 
 import org.example.enums.Role;
 import org.example.models.UserBuilder;
-import org.example.models.dao.JwtAuthenticationResponse;
-import org.example.models.dao.SignInRequest;
-import org.example.models.dao.SignUpRequest;
+import org.example.models.dao.response.JwtAuthenticationResponse;
+import org.example.models.dao.request.SignInRequest;
+import org.example.models.dao.request.SignUpRequest;
 import org.example.repositories.UserRepository;
+import org.example.services.AuthenticationService;
+import org.example.services.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;

@@ -1,4 +1,4 @@
-package org.example.models.dao;
+package org.example.models.dao.response;
 
 import org.example.enums.Role;
 import org.example.models.entities.User;

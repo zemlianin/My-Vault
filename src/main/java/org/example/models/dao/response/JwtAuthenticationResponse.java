@@ -1,4 +1,4 @@
-package org.example.models.dao;
+package org.example.models.dao.response;
 
 public class JwtAuthenticationResponse {
     private String token;

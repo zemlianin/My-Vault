@@ -1,11 +1,11 @@
 package org.example.controllers;
 
-import org.example.models.dao.ListSecretsResponse;
-import org.example.models.dao.SecretRequest;
-import org.example.models.dao.SecretResponse;
+import org.example.models.dao.response.ListSecretsResponse;
+import org.example.models.dao.request.SecretRequest;
+import org.example.models.dao.response.SecretResponse;
 import org.example.models.entities.Secret;
 import org.example.models.entities.User;
-import org.example.services.SecretDataAccess;
+import org.example.services.dataAccess.SecretDataAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;

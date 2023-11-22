@@ -1,4 +1,4 @@
-package org.example.services;
+package org.example.services.dataAccess;
 
 import org.example.models.HideVersionOfSecret;
 import org.example.models.entities.Secret;
