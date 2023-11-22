@@ -2,6 +2,10 @@ package org.example.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.example.models.GrantedAuthorityDeserializer;
 import org.example.models.dao.*;
 import org.example.models.entities.Secret;
@@ -18,8 +22,10 @@ import org.springframework.http.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -133,7 +139,7 @@ public class SecretControllerIntegrationTest {
                 SecretResponse.class
         );
 
-          assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
@@ -154,9 +160,39 @@ public class SecretControllerIntegrationTest {
                 ListSecretsResponse.class
         );
 
-        // var response = restTemplate.getForEntity(uri, ListSecretsResponse.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-       // assertEquals(0, response.getBody().getSecrets().size());
+        assertEquals(2, response.getBody().getSecrets().size());
+    }
+
+    @Test
+    public void testGetAllStrangeVectors() throws URISyntaxException {
+        var signUpRequest = new SignUpRequest("a", "a", "stranger@test.ru", "password");
+        restTemplate.postForEntity("/api/v1/auth/signup", signUpRequest, Void.class);
+
+        var signInRequest = new SignInRequest("stranger@test.ru", "password");
+        var signInResponse = restTemplate.postForEntity("/api/v1/auth/signin", signInRequest, JwtAuthenticationResponse.class);
+
+        var strangeToken = signInResponse.getBody().getToken();
+
+
+        var uri = new URI(baseUrl + "/get_all");
+        var user = userRepository.findByEmail("test@test.ru");
+        secretDataAccess.addSecret(user.get(), new Secret("a", "a", "a", "a"));
+        secretDataAccess.addSecret(user.get(), new Secret("b", "b", "b", "b"));
+
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(strangeToken);
+        var requestEntity = new HttpEntity<>(headers);
+
+        var response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                requestEntity,
+                ListSecretsResponse.class
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(0, response.getBody().getSecrets().size());
     }
 
     @Test
@@ -191,7 +227,6 @@ public class SecretControllerIntegrationTest {
 
         var id = secret.getId();
         var uri = new URI(baseUrl + "/get?id=" + id);
-        // var response = restTemplate.getForEntity(uri, SecretResponse.class);
 
         var headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
@@ -207,31 +242,44 @@ public class SecretControllerIntegrationTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(secret.getName(), response.getBody().getName());
     }
-/*
+
     @Test
     public void testGetNotFound() throws URISyntaxException {
         var id = UUID.randomUUID();
         var uri = new URI(baseUrl + "/get?id=" + id);
-        var response = restTemplate.getForEntity(uri, SecretResponse.class);
+
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        var requestEntity = new HttpEntity<>(headers);
+
+        var response = restTemplate.exchange(
+                uri,
+                HttpMethod.GET,
+                requestEntity,
+                SecretResponse.class
+        );
+
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
-    *//*
-     Простите конечно за следующий тест, он работает, но происходит все буквально руками.
-     Я считаю что эта джава имеет серьезные проблемы с порядком в версиях, а если серьезно то у джавы в них бардак
-     я не понимаю почему если я подрубаю новую библиотеку с тестами JUnit, то библиотека тащит за собой старую версию спринга
-     настолько старую что она не поддерживает запрос PATCH, И ЕСЛИ ты захочешь просто написать новую версию спринга руками в мавене
-     то выясняется что нужно переписывать кучу кода, потому что в старых версиях спринга нашли уязвимость и они решили
-     поменять как можно больше названий аннатоций, этот тест просто забастовка против БАРДАКА в версиях спринга,
-     если он и будет продолжаться я продолжу использовать Apache HttpClient,
-     Да, я буду писать больше кода, но сохраню свои нервные клетки.
+    /*
+         Простите конечно за следующий тест, он работает, но происходит все буквально руками.
+         Я считаю что эта джава имеет серьезные проблемы с порядком в версиях, а если серьезно то у джавы в них бардак
+         я не понимаю почему если я подрубаю новую библиотеку с тестами JUnit, то библиотека тащит за собой старую версию спринга
+         настолько старую что она не поддерживает запрос PATCH, И ЕСЛИ ты захочешь просто написать новую версию спринга руками в мавене
+         то выясняется что нужно переписывать кучу кода, потому что в старых версиях спринга нашли уязвимость и они решили
+         поменять как можно больше названий аннатоций, этот тест просто забастовка против БАРДАКА в версиях спринга,
+         если он и будет продолжаться я продолжу использовать Apache HttpClient,
+         Да, я буду писать больше кода, но сохраню свои нервные клетки.
 
-     НО ПАСАРАН!
-     *//*
+         НО ПАСАРАН!
+         */
     @Test
     public void testChange() throws IOException {
+        var user = userRepository.findByEmail("test@test.ru");
+
         var secret = new Secret("a", "a", "a", "a");
-        secret.setId(secretDataAccess.addSecret(secret).getId());
+        secret.setId(secretDataAccess.addSecret(user.get(), secret).getId());
 
         var id = secret.getId();
         var uri = baseUrl + "/change?id=" + id;
@@ -243,17 +291,19 @@ public class SecretControllerIntegrationTest {
         entity.setContentType("application/json");
         httpPatch.setEntity(entity);
 
+        httpPatch.setHeader("Authorization", "Bearer " + authToken);
+
         var response = httpClient.execute(httpPatch);
 
         int statusCode = response.getStatusLine().getStatusCode();
-        assertEquals(        HttpStatus.OK.value(), statusCode);
+        assertEquals(HttpStatus.OK.value(), statusCode);
 
         var responseEntity = response.getEntity();
         var responseBody = EntityUtils.toString(responseEntity);
 
         var secretResponse = new ObjectMapper().readValue(responseBody, SecretResponse.class);
-        assertEquals("newName", secretResponse.getSecret().getName());
+        assertEquals("newName", secretResponse.getName());
 
         httpClient.close();
-    }*/
+    }
 }

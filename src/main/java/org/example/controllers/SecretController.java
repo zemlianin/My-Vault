@@ -47,10 +47,10 @@ public class SecretController {
     }
 
     @GetMapping("/get_all")
-    public ResponseEntity<ListSecretsResponse> getAll1(@AuthenticationPrincipal User user) {
+    public ResponseEntity<ListSecretsResponse> getAll(@AuthenticationPrincipal User user) {
         try {
             var secrets = secretDataAccess.getAllSecrets(user);
-            return new ResponseEntity<>(new ListSecretsResponse(), HttpStatus.OK);
+            return new ResponseEntity<>(new ListSecretsResponse(secrets), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -76,7 +76,7 @@ public class SecretController {
             var secret = secretDataAccess.getSecret(user, id);
 
             if (secret.isEmpty()) {
-                return new ResponseEntity<>(new SecretResponse(null), HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new SecretResponse(), HttpStatus.NOT_FOUND);
             }
 
             return new ResponseEntity<>(new SecretResponse(secret.get()), HttpStatus.OK);
