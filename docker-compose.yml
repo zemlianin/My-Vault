@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: stage
+      MYSQL_USER: example
+      MYSQL_PASSWORD: secret2
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./dbdata:/var/lib/mysql
+#      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
