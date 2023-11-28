@@ -1,12 +1,15 @@
 package org.example.services.dataAccess;
 
+import org.example.congigurations.AppSettings;
 import org.example.models.entities.Secret;
 import org.example.models.entities.Token;
 import org.example.models.entities.User;
 import org.example.repositories.SecretRepository;
 import org.example.repositories.TokenRepository;
 import org.example.services.TokenService;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.NoSuchElementException;
@@ -35,5 +38,10 @@ public class TokenDataAccess implements TokenService {
         token.setExpires_at(Instant.now().getEpochSecond() + unixDuration);
 
         return tokenRepository.save(token);
+    }
+
+    @Scheduled(cron = "${interval-in-cron}")
+    public void cleanNotUsingSecrets(){
+        tokenRepository.deleteNotUseTokens();
     }
 }
