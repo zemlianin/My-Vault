@@ -4,6 +4,7 @@ import com.mysql.cj.exceptions.WrongArgumentException;
 import jakarta.persistence.*;
 import org.example.models.dao.request.SecretRequest;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -20,6 +21,9 @@ public class Secret {
     @JoinColumn(name = "user_id")
     User user;
 
+    @OneToMany()
+    List<Token> tokens;
+
     public Secret() {
     }
 
@@ -28,6 +32,13 @@ public class Secret {
         this.login = login;
         this.url = url;
         this.password = password;
+    }
+
+    public Secret(Secret other) {
+        this.name = other.getName();
+        this.login = other.getLogin();
+        this.url = other.getUrl();
+        this.password = other.getPassword();
     }
 
     public Secret(SecretRequest request) {

@@ -3,7 +3,6 @@ package org.example.repositories;
 import org.example.models.entities.Secret;
 import org.example.models.entities.User;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -14,5 +13,6 @@ public interface SecretRepository extends JpaRepository<Secret, UUID> {
     List<Secret> findAllByUser(User user);
     List<Secret> findAllByUser(User user, PageRequest pageable);
     Optional<Secret> findByIdAndUser(UUID id, User user);
+    Optional<Secret> findById(UUID id);
     List<Secret> deleteAllByUser(User user);
 }
