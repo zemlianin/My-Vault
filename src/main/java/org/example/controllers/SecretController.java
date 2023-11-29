@@ -22,12 +22,10 @@ import java.util.UUID;
 @RequestMapping("/api/v1/resource/secret")
 public class SecretController {
     final private SecretDataAccess secretDataAccess;
-    final private TokenDataAccess tokenDataAccess;
 
     @Autowired
-    public SecretController(SecretDataAccess secretDataAccess, TokenDataAccess tokenDataAccess) {
+    public SecretController(SecretDataAccess secretDataAccess) {
         this.secretDataAccess = secretDataAccess;
-        this.tokenDataAccess = tokenDataAccess;
     }
 
     @GetMapping("/ping")
@@ -46,19 +44,6 @@ public class SecretController {
             var secret = new Secret(request);
             var secretCreated = secretDataAccess.addSecret(user, secret);
             return new ResponseEntity<>(new SecretResponse(secretCreated), HttpStatus.CREATED);
-        } catch (Exception ex) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PostMapping("/add_secret_by_token")
-    public ResponseEntity<SecretResponse> createSecretByToken(@AuthenticationPrincipal User user,
-                                                              @RequestParam(value = "token") UUID token_id) {
-        try {
-            var secretCreated = secretDataAccess.addSecret(user, token_id);
-            return new ResponseEntity<>(new SecretResponse(secretCreated), HttpStatus.CREATED);
-        } catch (NoSuchElementException ex){
-            return new ResponseEntity<>(new SecretResponse(), HttpStatus.NOT_FOUND);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -98,21 +83,6 @@ public class SecretController {
             }
 
             return new ResponseEntity<>(new SecretResponse(secret.get()), HttpStatus.OK);
-        } catch (Exception ex) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping("/share")
-    public ResponseEntity<TokenResponse> share(@AuthenticationPrincipal User user,
-                                               @RequestParam(value = "id") UUID id,
-                                               @RequestParam(value = "days") int days) {
-        try {
-            var token = tokenDataAccess.addToken(user, id, (long) days * 24 * 60 * 60);
-
-            return new ResponseEntity<>(new TokenResponse(token), HttpStatus.OK);
-        } catch (NoSuchElementException ex){
-            return new ResponseEntity<>(new TokenResponse(), HttpStatus.NOT_FOUND);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

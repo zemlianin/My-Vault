@@ -18,12 +18,12 @@ import java.util.function.Function;
 
 @Service
 public class JwtDataAccess implements JwtService {
-    @Value("${token.signing.key}")
-    private String jwtSigningKey;
     @Override
     public String extractUserName(String token) {
         return extractClaim(token, Claims::getSubject);
     }
+    @Value("${token.signing.key}")
+    private String jwtSigningKey;
 
     @Override
     public String generateToken(UserDetails userDetails) {
