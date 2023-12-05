@@ -1,7 +1,5 @@
 package org.example.services.dataAccess;
 
-import org.example.congigurations.AppSettings;
-import org.example.models.entities.Secret;
 import org.example.models.entities.Token;
 import org.example.models.entities.User;
 import org.example.repositories.SecretRepository;
@@ -9,7 +7,6 @@ import org.example.repositories.TokenRepository;
 import org.example.services.TokenService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.NoSuchElementException;
@@ -30,7 +27,7 @@ public class TokenDataAccess implements TokenService {
         var secret = secretRepository.findByIdAndUser(id, user);
 
         if(secret.isEmpty()){
-            throw new NoSuchElementException("Отсутствует такой секрет");
+            throw new NoSuchElementException("Secret not found");
         }
 
         token.setSecret(secret.get());

@@ -12,9 +12,7 @@ import org.example.services.UserService;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -37,6 +35,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
+
+        if (request.getRequestURI().startsWith("/actuator/") && (
+                request.getRemoteAddr().equals("127.0.0.1") ||
+                        request.getRemoteAddr().equals("0:0:0:0:0:0:0:1") ||
+                        request.getRemoteAddr().equals("localhost"))) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (StringUtils.isEmpty(authHeader) || !StringUtils.startsWith(authHeader, "Bearer ")) {
             filterChain.doFilter(request, response);

@@ -16,8 +16,8 @@ public class TokenResponse {
     public TokenResponse(Token token){
         this.id = token.getId();
         this.secret = new SecretResponse(token.getSecret());
-        this.created_at = token.getCreated_at();
-        this.expires_at = token.getExpires_at();
+        this.created_at = token.getCreatedAt();
+        this.expires_at = token.getExpiresAt();
     }
 
     public TokenResponse(SecretResponse secret, long created_at, long expires_at) {

@@ -23,6 +23,6 @@ public interface TokenRepository  extends JpaRepository<Token, UUID> {
 
     @Transactional(timeout = 6000)
     @Modifying
-    @Query("DELETE FROM Token t WHERE t.is_deleted = true AND expires_at >= UNIX_TIMESTAMP()")
+    @Query("DELETE FROM Token t WHERE t.is_deleted = true OR expires_at >= UNIX_TIMESTAMP()")
     void deleteNotUseTokens();
 }

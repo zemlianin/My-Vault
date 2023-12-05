@@ -42,7 +42,7 @@ public class Token {
         this.secret = secret;
     }
 
-    public long getCreated_at() {
+    public long getCreatedAt() {
         return created_at;
     }
 
@@ -50,7 +50,7 @@ public class Token {
         this.created_at = created_at;
     }
 
-    public long getExpires_at() {
+    public long getExpiresAt() {
         return expires_at;
     }
 
