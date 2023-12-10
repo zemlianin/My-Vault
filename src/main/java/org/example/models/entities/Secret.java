@@ -18,6 +18,10 @@ public class Secret {
     String password;
 
     @ManyToOne()
+    @JoinColumn(name = "directory_id")
+    Directory directory;
+
+    @ManyToOne()
     @JoinColumn(name = "user_id")
     User user;
 
@@ -66,6 +70,7 @@ public class Secret {
     public void setUser(User user) {
         this.user = user;
     }
+
     public String getLogin() {
         return login;
     }

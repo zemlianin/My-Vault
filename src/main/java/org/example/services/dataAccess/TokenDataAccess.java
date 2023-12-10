@@ -26,7 +26,7 @@ public class TokenDataAccess implements TokenService {
         var token = new Token();
         var secret = secretRepository.findByIdAndUser(id, user);
 
-        if(secret.isEmpty()){
+        if (secret.isEmpty()) {
             throw new NoSuchElementException("Secret not found");
         }
 

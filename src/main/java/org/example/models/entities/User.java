@@ -27,6 +27,25 @@ public class User implements UserDetails {
     @OneToMany
     List<Secret> secrets;
 
+    @OneToMany
+    List<Directory> directories;
+
+    public List<Secret> getSecrets() {
+        return secrets;
+    }
+
+    public void setSecrets(List<Secret> secrets) {
+        this.secrets = secrets;
+    }
+
+    public List<Directory> getDirectories() {
+        return directories;
+    }
+
+    public void setDirectories(List<Directory> directories) {
+        this.directories = directories;
+    }
+
     public Integer getId() {
         return id;
     }

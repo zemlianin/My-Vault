@@ -22,6 +22,7 @@ public class JwtDataAccess implements JwtService {
     public String extractUserName(String token) {
         return extractClaim(token, Claims::getSubject);
     }
+
     @Value("${token.signing.key}")
     private String jwtSigningKey;
 
