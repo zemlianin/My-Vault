@@ -1,6 +1,6 @@
 package org.example.models.dao.response;
 
-import org.example.models.entities.Directory;
+import org.example.models.entities.directory.Directory;
 
 import java.util.ArrayList;
 import java.util.List;

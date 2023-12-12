@@ -1,20 +1,19 @@
 package org.example.services.dataAccess;
 
 import org.example.models.dao.transport.DirectoryTransport;
-import org.example.models.entities.Directory;
-import org.example.models.entities.Token;
 import org.example.models.entities.User;
+import org.example.models.entities.directory.Directory;
+import org.example.models.entities.directory.RootDirectory;
 import org.example.repositories.DirectoryRepository;
-import org.example.repositories.SecretRepository;
-import org.example.repositories.TokenRepository;
+import org.example.services.DirectoryService;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.NoSuchElementException;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class DirectoryDataAccess {
+public class DirectoryDataAccess implements DirectoryService {
 
     private final DirectoryRepository directoryRepository;
 
@@ -26,5 +25,13 @@ public class DirectoryDataAccess {
         var directory = new Directory(directoryTransport);
 
         return directoryRepository.save(directory);
+    }
+
+    public Optional<Directory> getDirectoryById(UUID id) {
+        return directoryRepository.findById(id);
+    }
+
+    public List<Directory> getDirectoriesByUserAndParentId(User user, UUID parentId) {
+        return directoryRepository.findAllByUserAndParentId(user, parentId);
     }
 }

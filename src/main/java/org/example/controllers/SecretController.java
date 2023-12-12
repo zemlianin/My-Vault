@@ -1,13 +1,15 @@
 package org.example.controllers;
 
+import org.example.models.dao.request.DirectoryRequest;
 import org.example.models.dao.response.ListSecretsResponse;
 import org.example.models.dao.request.SecretRequest;
 import org.example.models.dao.response.SecretResponse;
-import org.example.models.dao.response.TokenResponse;
 import org.example.models.entities.Secret;
 import org.example.models.entities.User;
+import org.example.models.entities.directory.RootDirectory;
+import org.example.services.dataAccess.DirectoryDataAccess;
+import org.example.services.dataAccess.RootDirectoryDataAccess;
 import org.example.services.dataAccess.SecretDataAccess;
-import org.example.services.dataAccess.TokenDataAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -34,25 +36,31 @@ public class SecretController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<SecretResponse> createNewSecret(@AuthenticationPrincipal User user, @RequestBody SecretRequest request) {
+    public ResponseEntity<SecretResponse> createNewSecret(@AuthenticationPrincipal User user,
+                                                          @RequestBody SecretRequest request) {
         try {
             if (request.getName() == null || request.getPassword() == null) {
                 var badResponse = new SecretResponse();
                 badResponse.setDescription("One or more fields are missing. All fields are mandatory.");
                 return new ResponseEntity<>(badResponse, HttpStatus.BAD_REQUEST);
             }
-            var secret = new Secret(request);
-            var secretCreated = secretDataAccess.addSecret(user, secret);
+
+            var secretTransport = secretDataAccess.getSecretTransport(user, request);
+
+            var secretCreated = secretDataAccess.addSecret(user, secretTransport);
             return new ResponseEntity<>(new SecretResponse(secretCreated), HttpStatus.CREATED);
+        } catch (NoSuchElementException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/get_all")
-    public ResponseEntity<ListSecretsResponse> getAll(@AuthenticationPrincipal User user) {
+    public ResponseEntity<ListSecretsResponse> getAll(@AuthenticationPrincipal User user,
+                                                      @RequestParam(value = "directoryId", required = false) UUID directoryId) {
         try {
-            var secrets = secretDataAccess.getAllSecrets(user);
+            var secrets = secretDataAccess.getAllSecrets(user, directoryId);
             return new ResponseEntity<>(new ListSecretsResponse(secrets), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -61,11 +69,12 @@ public class SecretController {
 
     @GetMapping("/get_all_paginate")
     public ResponseEntity<ListSecretsResponse> getAll(@AuthenticationPrincipal User user,
+                                                      @RequestParam(value = "directoryId", required = false) UUID directoryId,
                                                       @RequestParam(defaultValue = "0") int page,
                                                       @RequestParam(defaultValue = "10") int size) {
         try {
             var pageable = PageRequest.of(page, size);
-            var secretsPage = secretDataAccess.getAllSecrets(user, pageable);
+            var secretsPage = secretDataAccess.getAllSecrets(user, directoryId, pageable);
             return new ResponseEntity<>(new ListSecretsResponse(secretsPage.getContent()), HttpStatus.OK);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

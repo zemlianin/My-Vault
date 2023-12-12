@@ -1,6 +1,7 @@
 package org.example.models;
 
 import org.example.enums.Role;
+import org.example.models.entities.directory.RootDirectory;
 import org.example.models.entities.User;
 
 public class UserBuilder {
@@ -10,6 +11,7 @@ public class UserBuilder {
     private String email;
     private String password;
     private Role role;
+    private RootDirectory rootDirectory;
 
     public UserBuilder id(Integer id) {
         this.id = id;
@@ -41,6 +43,11 @@ public class UserBuilder {
         return this;
     }
 
+    public UserBuilder rootDirectory(RootDirectory rootDirectory) {
+        this.rootDirectory = rootDirectory;
+        return this;
+    }
+
     public User build() {
         User user = new User();
         user.setId(id);
@@ -49,6 +56,7 @@ public class UserBuilder {
         user.setEmail(email);
         user.setPassword(password);
         user.setRole(role);
+        user.setRootDirectory(rootDirectory);
         return user;
     }
 }

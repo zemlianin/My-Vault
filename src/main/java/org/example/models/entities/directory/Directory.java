@@ -1,57 +1,47 @@
-package org.example.models.entities;
+package org.example.models.entities.directory;
 
 import jakarta.persistence.*;
 import org.example.models.dao.transport.DirectoryTransport;
+import org.example.models.entities.Secret;
+import org.example.models.entities.User;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
-public class Directory {
+public class Directory implements DirectoryInterface {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
-    String name;
-    UUID parentId;
-
-    Boolean isRoot;
 
     @ManyToOne()
     @JoinColumn(name = "user_id")
     User user;
 
+    String name;
+    UUID parentId;
     @OneToMany
     List<Secret> secrets;
 
     public Directory() {
     }
 
-    public Directory(UUID id, String name, UUID parentId, Boolean isRoot, User user, List<Secret> secrets) {
+    public Directory(UUID id, String name, UUID parentId, User user, List<Secret> secrets) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
-        this.isRoot = isRoot;
         this.user = user;
         this.secrets = secrets;
     }
 
     public Directory(DirectoryTransport directoryTransport) {
+        this.id = directoryTransport.getId();
         this.user = directoryTransport.getUser();
-        this.parentId = directoryTransport.getParentId();
-        this.isRoot = directoryTransport.getRoot();
+        this.parentId = directoryTransport.getParentId().isEmpty() ? null : directoryTransport.getParentId().get();
         this.name = directoryTransport.getName();
-        this.parentId = directoryTransport.getParentId();
-        this.isRoot = directoryTransport.getRoot();
         this.secrets = new ArrayList<>();
-    }
-
-    public Boolean getRoot() {
-        return isRoot;
-    }
-
-    public void setRoot(Boolean root) {
-        isRoot = root;
     }
 
     public User getUser() {

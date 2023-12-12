@@ -3,6 +3,8 @@ package org.example.models.entities;
 import jakarta.persistence.*;
 import org.example.enums.Role;
 import jakarta.persistence.Id;
+import org.example.models.entities.directory.Directory;
+import org.example.models.entities.directory.RootDirectory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,6 +31,17 @@ public class User implements UserDetails {
 
     @OneToMany
     List<Directory> directories;
+
+    @OneToOne
+    RootDirectory rootDirectory;
+
+    public RootDirectory getRootDirectory() {
+        return rootDirectory;
+    }
+
+    public void setRootDirectory(RootDirectory rootDirectory) {
+        this.rootDirectory = rootDirectory;
+    }
 
     public List<Secret> getSecrets() {
         return secrets;

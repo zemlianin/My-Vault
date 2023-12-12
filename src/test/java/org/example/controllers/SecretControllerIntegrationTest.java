@@ -13,6 +13,8 @@ import org.example.models.dao.request.SignUpRequest;
 import org.example.models.dao.response.JwtAuthenticationResponse;
 import org.example.models.dao.response.ListSecretsResponse;
 import org.example.models.dao.response.SecretResponse;
+import org.example.models.dao.transport.RootDirectoryTransport;
+import org.example.models.dao.transport.SecretTransport;
 import org.example.models.entities.Secret;
 import org.example.repositories.UserRepository;
 import org.example.services.dataAccess.SecretDataAccess;
@@ -31,6 +33,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -92,7 +95,7 @@ public class SecretControllerIntegrationTest {
 
     @Test
     void testCreateNewSecret() {
-        var request = new SecretRequest("a", "a", "a", "a");
+        var request = new SecretRequest("a", "a", "a", "a", null);
 
         var headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
@@ -133,7 +136,7 @@ public class SecretControllerIntegrationTest {
     @Test
     public void testCreateWithoutArguments() throws URISyntaxException {
         var uri = new URI(baseUrl + "/create");
-        var secretRequest = new SecretRequest(null, "a", null, "a");
+        var secretRequest = new SecretRequest(null, "a", null, "a", null);
 
         var headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
@@ -153,8 +156,8 @@ public class SecretControllerIntegrationTest {
     public void testGetAll() throws URISyntaxException {
         var uri = new URI(baseUrl + "/get_all");
         var user = userRepository.findByEmail("test@test.ru");
-        secretDataAccess.addSecret(user.get(), new Secret("a", "a", "a", "a"));
-        secretDataAccess.addSecret(user.get(), new Secret("b", "b", "b", "b"));
+        secretDataAccess.addSecret(user.get(), new SecretTransport("a", "a", "a", "a", new RootDirectoryTransport(user.get().getRootDirectory()), Optional.empty()));
+        secretDataAccess.addSecret(user.get(), new SecretTransport("b", "b", "b", "b", new RootDirectoryTransport(user.get().getRootDirectory()), Optional.empty()));
 
         var headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
@@ -184,8 +187,8 @@ public class SecretControllerIntegrationTest {
 
         var uri = new URI(baseUrl + "/get_all");
         var user = userRepository.findByEmail("test@test.ru");
-        secretDataAccess.addSecret(user.get(), new Secret("a", "a", "a", "a"));
-        secretDataAccess.addSecret(user.get(), new Secret("b", "b", "b", "b"));
+        secretDataAccess.addSecret(user.get(), new SecretTransport("a", "a", "a", "a", new RootDirectoryTransport(user.get().getRootDirectory()), Optional.empty()));
+        secretDataAccess.addSecret(user.get(), new SecretTransport("b", "b", "b", "b", new RootDirectoryTransport(user.get().getRootDirectory()), Optional.empty()));
 
         var headers = new HttpHeaders();
         headers.setBearerAuth(strangeToken);
@@ -207,8 +210,8 @@ public class SecretControllerIntegrationTest {
         var uri = new URI(baseUrl + "/get_all_paginate?page=0&size=1");
         var user = userRepository.findByEmail("test@test.ru");
 
-        secretDataAccess.addSecret(user.get(), new Secret("a", "a", "a", "a"));
-        secretDataAccess.addSecret(user.get(), new Secret("b", "b", "b", "b"));
+        secretDataAccess.addSecret(user.get(), new SecretTransport("a", "a", "a", "a", new RootDirectoryTransport(user.get().getRootDirectory()), Optional.empty()));
+        secretDataAccess.addSecret(user.get(), new SecretTransport("b", "b", "b", "b", new RootDirectoryTransport(user.get().getRootDirectory()), Optional.empty()));
 
         var headers = new HttpHeaders();
         headers.setBearerAuth(authToken);
@@ -229,8 +232,8 @@ public class SecretControllerIntegrationTest {
     public void testGet() throws URISyntaxException {
         var user = userRepository.findByEmail("test@test.ru");
 
-        var secret = new Secret("a", "a", "a", "a");
-        secret.setId(secretDataAccess.addSecret(user.get(), secret).getId());
+        var secretTransport = new SecretTransport("a", "a", "a", "a", new RootDirectoryTransport(user.get().getRootDirectory()), Optional.empty());
+        var secret = secretDataAccess.addSecret(user.get(), secretTransport);
 
         var id = secret.getId();
         var uri = new URI(baseUrl + "/get?id=" + id);
@@ -285,12 +288,12 @@ public class SecretControllerIntegrationTest {
     public void testChange() throws IOException {
         var user = userRepository.findByEmail("test@test.ru");
 
-        var secret = new Secret("a", "a", "a", "a");
-        secret.setId(secretDataAccess.addSecret(user.get(), secret).getId());
+        var secretTransport = new SecretTransport("a", "a", "a", "a", new RootDirectoryTransport(user.get().getRootDirectory()), Optional.empty());
+        var secret = secretDataAccess.addSecret(user.get(), secretTransport);
 
         var id = secret.getId();
         var uri = baseUrl + "/change?id=" + id;
-        var secretRequest = new SecretRequest("newName", "newUrl", "newLogin", "newPassword");
+        var secretRequest = new SecretRequest("newName", "newUrl", "newLogin", "newPassword", null);
 
         var httpClient = HttpClients.createDefault();
         var httpPatch = new HttpPatch(uri);

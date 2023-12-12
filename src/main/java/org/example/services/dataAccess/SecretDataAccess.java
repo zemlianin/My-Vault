@@ -1,8 +1,15 @@
 package org.example.services.dataAccess;
 
 import org.example.models.HideVersionOfSecret;
+import org.example.models.dao.request.SecretRequest;
+import org.example.models.dao.transport.DirectoryTransport;
+import org.example.models.dao.transport.RootDirectoryTransport;
+import org.example.models.dao.transport.SecretTransport;
 import org.example.models.entities.Secret;
 import org.example.models.entities.User;
+import org.example.models.entities.directory.Directory;
+import org.example.repositories.DirectoryRepository;
+import org.example.repositories.RootDirectoryRepository;
 import org.example.repositories.SecretRepository;
 import org.example.repositories.TokenRepository;
 import org.example.services.TokenMetricsService;
@@ -19,31 +26,37 @@ public class SecretDataAccess {
     final private SecretRepository secretRepository;
     final private TokenRepository tokenRepository;
     final private TokenMetricsService tokenMetricsService;
+    final private RootDirectoryRepository rootDirectoryRepository;
+    final private DirectoryRepository directoryRepository;
 
     public SecretDataAccess(SecretRepository secretRepository,
                             TokenRepository tokenRepository,
-                            TokenMetricsService tokenMetricsService) {
+                            TokenMetricsService tokenMetricsService,
+                            DirectoryRepository directoryRepository,
+                            RootDirectoryRepository rootDirectoryRepository) {
         this.secretRepository = secretRepository;
         this.tokenRepository = tokenRepository;
         this.tokenMetricsService = tokenMetricsService;
+        this.rootDirectoryRepository = rootDirectoryRepository;
+        this.directoryRepository = directoryRepository;
     }
 
     public Secret addSecret(User user, UUID tokenId) {
         var tokenIsValid = tokenRepository.softDeleteById(tokenId);
 
-        if(tokenIsValid == 0){
+        if (tokenIsValid == 0) {
             tokenMetricsService.IncrementReuseOldTokenCounter();
             throw new NoSuchElementException("Token with this id does not exist");
         }
 
         var token = tokenRepository.findById(tokenId);
 
-        if(token.isEmpty()){
+        if (token.isEmpty()) {
             tokenMetricsService.IncrementReuseOldTokenCounter();
             throw new NoSuchElementException("Token with this id does not exist");
         }
 
-        if(token.get().getExpiresAt() < Instant.now().getEpochSecond()){
+        if (token.get().getExpiresAt() < Instant.now().getEpochSecond()) {
             tokenMetricsService.incrementOverdueTokenUseCounter();
             throw new NoSuchElementException("Token with this id does not exist");
         }
@@ -51,16 +64,31 @@ public class SecretDataAccess {
         tokenMetricsService.addTokenUsageDuration(token.get().getCreatedAt());
         var secret = secretRepository.findById(token.get().getSecret().getId());
 
-        if(secret.isEmpty()){
-            throw  new NoSuchElementException("Secret not found");
+        if (secret.isEmpty()) {
+            throw new NoSuchElementException("Secret not found");
         }
         var newSecret = new Secret(secret.get());
         newSecret.setUser(user);
         return secretRepository.save(newSecret);
     }
 
-    public Secret addSecret(User user, Secret secret) {
-        secret.setUser(user);
+    public SecretTransport getSecretTransport(User user, SecretRequest secretRequest) {
+        Optional<Directory> directory = Optional.empty();
+
+        if (secretRequest.getDirectoryId() != null) {
+            directory = directoryRepository.findById(secretRequest.getDirectoryId());
+        }
+
+        var rootDirectory = user.getRootDirectory();
+
+        var secretTransport = new SecretTransport(secretRequest,
+                directory.isEmpty() ? Optional.empty() : Optional.of(new DirectoryTransport(directory.get())),
+                new RootDirectoryTransport(rootDirectory));
+        return secretTransport;
+    }
+
+    public Secret addSecret(User user, SecretTransport secretTransport) {
+        var secret = new Secret(user, secretTransport);
         return secretRepository.save(secret);
     }
 
@@ -72,16 +100,16 @@ public class SecretDataAccess {
         secretRepository.deleteAll();
     }
 
-    public List<HideVersionOfSecret> getAllSecrets(User user) {
-        var collection = secretRepository.findAllByUser(user);
+    public List<HideVersionOfSecret> getAllSecrets(User user, UUID directoryId) {
+        var collection = secretRepository.findAllByUserAndDirectoryId(user, directoryId);
         var secrets = collection.stream()
                 .map(HideVersionOfSecret::new)
                 .toList();
         return secrets;
     }
 
-    public Page<HideVersionOfSecret> getAllSecrets(User user, PageRequest pageRequest) {
-        var collection = secretRepository.findAllByUser(user, pageRequest);
+    public Page<HideVersionOfSecret> getAllSecrets(User user, UUID directoryId, PageRequest pageRequest) {
+        var collection = secretRepository.findAllByUserAndDirectoryId(user,directoryId, pageRequest);
         var secrets = collection.stream()
                 .map(HideVersionOfSecret::new)
                 .toList();

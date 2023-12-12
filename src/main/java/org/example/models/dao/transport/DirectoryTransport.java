@@ -2,34 +2,32 @@ package org.example.models.dao.transport;
 
 import org.example.models.dao.request.DirectoryRequest;
 import org.example.models.entities.User;
+import org.example.models.entities.directory.Directory;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class DirectoryTransport {
     UUID id;
     String name;
-    UUID parentId;
+    Optional<UUID> parentId;
     User user;
-    Boolean isRoot;
 
     public DirectoryTransport() {
     }
 
+    public DirectoryTransport(Directory directory) {
+        id = directory.getId();
+        name = directory.getName();
+        parentId = Optional.of(directory.getParentId());
+        user = directory.getUser();
+    }
 
-    public DirectoryTransport(UUID id, String name, UUID parentId, User user, Boolean isRoot) {
-        this.id = id;
-        this.isRoot = isRoot;
-        this.name = name;
-        this.parentId = parentId;
+
+    public DirectoryTransport(User user, DirectoryRequest directoryRequest) {
+        this.name = directoryRequest.getName();
+        this.parentId = Optional.ofNullable(directoryRequest.getParentId());
         this.user = user;
-    }
-
-    public Boolean getRoot() {
-        return isRoot;
-    }
-
-    public void setRoot(Boolean root) {
-        isRoot = root;
     }
 
     public UUID getId() {
@@ -48,11 +46,11 @@ public class DirectoryTransport {
         this.name = name;
     }
 
-    public UUID getParentId() {
+    public Optional<UUID> getParentId() {
         return parentId;
     }
 
-    public void setParentId(UUID parentId) {
+    public void setParentId(Optional<UUID> parentId) {
         this.parentId = parentId;
     }
 

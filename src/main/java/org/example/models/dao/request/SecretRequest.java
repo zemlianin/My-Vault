@@ -1,16 +1,28 @@
 package org.example.models.dao.request;
 
+import java.util.UUID;
+
 public class SecretRequest {
     String name;
     String url;
     String login;
     String password;
+    UUID directoryId;
 
-    public SecretRequest(String name, String url, String login, String password){
+    public SecretRequest(String name, String url, String login, String password, UUID directoryId) {
         this.name = name;
         this.url = url;
         this.login = login;
         this.password = password;
+        this.directoryId = directoryId;
+    }
+
+    public UUID getDirectoryId() {
+        return directoryId;
+    }
+
+    public void setDirectoryId(UUID directoryId) {
+        this.directoryId = directoryId;
     }
 
     public String getLogin() {

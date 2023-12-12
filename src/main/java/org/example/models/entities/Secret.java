@@ -3,6 +3,10 @@ package org.example.models.entities;
 import com.mysql.cj.exceptions.WrongArgumentException;
 import jakarta.persistence.*;
 import org.example.models.dao.request.SecretRequest;
+import org.example.models.dao.transport.SecretTransport;
+import org.example.models.entities.directory.Directory;
+import org.example.models.entities.directory.DirectoryInterface;
+import org.example.models.entities.directory.RootDirectory;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +24,10 @@ public class Secret {
     @ManyToOne()
     @JoinColumn(name = "directory_id")
     Directory directory;
+
+    @ManyToOne()
+    @JoinColumn(name = "root_directory_id")
+    RootDirectory rootDirectory;
 
     @ManyToOne()
     @JoinColumn(name = "user_id")
@@ -43,14 +51,19 @@ public class Secret {
         this.login = other.getLogin();
         this.url = other.getUrl();
         this.password = other.getPassword();
+        this.directory = other.getDirectory();
+        this.rootDirectory = other.getRootDirectory();
     }
 
-    public Secret(SecretRequest request) {
-        id = UUID.randomUUID();
-        name = request.getName();
-        url = request.getUrl();
-        password = request.getPassword();
-        login = request.getLogin();
+    public Secret(User user, SecretTransport secretTransport) {
+        name = secretTransport.getName();
+        url = secretTransport.getUrl();
+        password = secretTransport.getPassword();
+        login = secretTransport.getLogin();
+        directory = secretTransport.getDirectoryTransport().isEmpty() ? null
+                : new Directory(secretTransport.getDirectoryTransport().get());
+        rootDirectory = new RootDirectory(secretTransport.getRootDirectoryTransport());
+        this.user = user;
     }
 
     public void changeSecret(SecretRequest request) {
@@ -61,6 +74,38 @@ public class Secret {
         url = request.getUrl();
         password = request.getPassword();
         login = request.getLogin();
+    }
+
+    public DirectoryInterface getParentDirectory() {
+        if (directory != null) {
+            return directory;
+        } else {
+            return rootDirectory;
+        }
+    }
+
+    public Directory getDirectory() {
+        return directory;
+    }
+
+    public void setDirectory(Directory directory) {
+        this.directory = directory;
+    }
+
+    public RootDirectory getRootDirectory() {
+        return rootDirectory;
+    }
+
+    public void setRootDirectory(RootDirectory rootDirectory) {
+        this.rootDirectory = rootDirectory;
+    }
+
+    public List<Token> getTokens() {
+        return tokens;
+    }
+
+    public void setTokens(List<Token> tokens) {
+        this.tokens = tokens;
     }
 
     public User getUser() {
