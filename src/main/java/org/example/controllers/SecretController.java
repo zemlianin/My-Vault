@@ -1,14 +1,12 @@
 package org.example.controllers;
 
 import org.example.models.dao.request.DirectoryRequest;
+import org.example.models.dao.response.DirectoryResponse;
 import org.example.models.dao.response.ListSecretsResponse;
 import org.example.models.dao.request.SecretRequest;
 import org.example.models.dao.response.SecretResponse;
-import org.example.models.entities.Secret;
 import org.example.models.entities.User;
-import org.example.models.entities.directory.RootDirectory;
 import org.example.services.dataAccess.DirectoryDataAccess;
-import org.example.services.dataAccess.RootDirectoryDataAccess;
 import org.example.services.dataAccess.SecretDataAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -24,10 +22,13 @@ import java.util.UUID;
 @RequestMapping("/api/v1/resource/secret")
 public class SecretController {
     final private SecretDataAccess secretDataAccess;
+    final private DirectoryDataAccess directoryDataAccess;
 
     @Autowired
-    public SecretController(SecretDataAccess secretDataAccess) {
+    public SecretController(SecretDataAccess secretDataAccess,
+                            DirectoryDataAccess directoryDataAccess) {
         this.secretDataAccess = secretDataAccess;
+        this.directoryDataAccess = directoryDataAccess;
     }
 
     @GetMapping("/ping")
@@ -62,6 +63,8 @@ public class SecretController {
         try {
             var secrets = secretDataAccess.getAllSecrets(user, directoryId);
             return new ResponseEntity<>(new ListSecretsResponse(secrets), HttpStatus.OK);
+        } catch (NoSuchElementException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -76,6 +79,8 @@ public class SecretController {
             var pageable = PageRequest.of(page, size);
             var secretsPage = secretDataAccess.getAllSecrets(user, directoryId, pageable);
             return new ResponseEntity<>(new ListSecretsResponse(secretsPage.getContent()), HttpStatus.OK);
+        } catch (NoSuchElementException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -87,11 +92,9 @@ public class SecretController {
         try {
             var secret = secretDataAccess.getSecret(user, id);
 
-            if (secret.isEmpty()) {
-                return new ResponseEntity<>(new SecretResponse(), HttpStatus.NOT_FOUND);
-            }
-
-            return new ResponseEntity<>(new SecretResponse(secret.get()), HttpStatus.OK);
+            return new ResponseEntity<>(new SecretResponse(secret), HttpStatus.OK);
+        } catch (NoSuchElementException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -104,15 +107,28 @@ public class SecretController {
         try {
             var secret = secretDataAccess.getSecret(user, id);
 
-            if (secret.isEmpty()) {
-                return new ResponseEntity<>(new SecretResponse(), HttpStatus.NOT_FOUND);
-            }
+            secret.changeSecret(request);
 
-            var presentSecret = secret.get();
+            return new ResponseEntity<>(new SecretResponse(secret), HttpStatus.OK);
+        } catch (NoSuchElementException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception ex) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
-            presentSecret.changeSecret(request);
+    @PatchMapping("/relocate")
+    public ResponseEntity<SecretResponse> relocateSecret(@AuthenticationPrincipal User user,
+                                                         @RequestParam(value = "secretId") UUID id,
+                                                         @RequestParam(value = "directoryId") UUID directoryId) {
+        try {
+            var secret = secretDataAccess.getSecret(user, id);
 
-            return new ResponseEntity<>(new SecretResponse(presentSecret), HttpStatus.OK);
+            directoryDataAccess.relocateSecret(secret, directoryId, user);
+
+            return new ResponseEntity<>(new SecretResponse(secret), HttpStatus.OK);
+        } catch (NoSuchElementException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception ex) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

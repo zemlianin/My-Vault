@@ -26,19 +26,17 @@ public class SecretDataAccess {
     final private SecretRepository secretRepository;
     final private TokenRepository tokenRepository;
     final private TokenMetricsService tokenMetricsService;
-    final private RootDirectoryRepository rootDirectoryRepository;
-    final private DirectoryRepository directoryRepository;
+    final private DirectoryDataAccess directoryDataAccess;
 
     public SecretDataAccess(SecretRepository secretRepository,
                             TokenRepository tokenRepository,
                             TokenMetricsService tokenMetricsService,
-                            DirectoryRepository directoryRepository,
-                            RootDirectoryRepository rootDirectoryRepository) {
+                            DirectoryDataAccess directoryDataAccess) {
         this.secretRepository = secretRepository;
         this.tokenRepository = tokenRepository;
         this.tokenMetricsService = tokenMetricsService;
-        this.rootDirectoryRepository = rootDirectoryRepository;
-        this.directoryRepository = directoryRepository;
+        this.directoryDataAccess = directoryDataAccess;
+
     }
 
     public Secret addSecret(User user, UUID tokenId) {
@@ -76,7 +74,7 @@ public class SecretDataAccess {
         Optional<Directory> directory = Optional.empty();
 
         if (secretRequest.getDirectoryId() != null) {
-            directory = directoryRepository.findById(secretRequest.getDirectoryId());
+            directory = Optional.of(directoryDataAccess.getDirectoryByUserAndId(user, secretRequest.getDirectoryId()));
         }
 
         var rootDirectory = user.getRootDirectory();
@@ -109,7 +107,7 @@ public class SecretDataAccess {
     }
 
     public Page<HideVersionOfSecret> getAllSecrets(User user, UUID directoryId, PageRequest pageRequest) {
-        var collection = secretRepository.findAllByUserAndDirectoryId(user,directoryId, pageRequest);
+        var collection = secretRepository.findAllByUserAndDirectoryId(user, directoryId, pageRequest);
         var secrets = collection.stream()
                 .map(HideVersionOfSecret::new)
                 .toList();
@@ -117,7 +115,13 @@ public class SecretDataAccess {
         return new PageImpl<>(secrets, pageRequest, secrets.size());
     }
 
-    public Optional<Secret> getSecret(User user, UUID id) {
-        return secretRepository.findByIdAndUser(id, user);
+    public Secret getSecret(User user, UUID id) {
+        var secret = secretRepository.findByIdAndUser(id, user);
+
+        if (secret.isEmpty()) {
+            throw new NoSuchElementException();
+        }
+
+        return secret.get();
     }
 }

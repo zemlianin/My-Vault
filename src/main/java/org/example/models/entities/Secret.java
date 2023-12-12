@@ -3,6 +3,7 @@ package org.example.models.entities;
 import com.mysql.cj.exceptions.WrongArgumentException;
 import jakarta.persistence.*;
 import org.example.models.dao.request.SecretRequest;
+import org.example.models.dao.transport.DirectoryTransport;
 import org.example.models.dao.transport.SecretTransport;
 import org.example.models.entities.directory.Directory;
 import org.example.models.entities.directory.DirectoryInterface;
