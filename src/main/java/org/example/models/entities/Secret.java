@@ -67,16 +67,6 @@ public class Secret {
         this.user = user;
     }
 
-    public void changeSecret(SecretRequest request) {
-        if (request.getName() == null || request.getPassword() == null) {
-            throw new WrongArgumentException();
-        }
-        name = request.getName();
-        url = request.getUrl();
-        password = request.getPassword();
-        login = request.getLogin();
-    }
-
     public DirectoryInterface getParentDirectory() {
         if (directory != null) {
             return directory;

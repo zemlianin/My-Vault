@@ -1,5 +1,6 @@
 package org.example.services.dataAccess;
 
+import com.mysql.cj.exceptions.WrongArgumentException;
 import org.example.models.HideVersionOfSecret;
 import org.example.models.dao.request.SecretRequest;
 import org.example.models.dao.transport.DirectoryTransport;
@@ -123,5 +124,17 @@ public class SecretDataAccess {
         }
 
         return secret.get();
+    }
+
+    public Secret changeSecret(Secret secret, SecretRequest request) {
+        if (request.getName() == null || request.getPassword() == null) {
+            throw new NoSuchElementException();
+        }
+        secret.setName(request.getName());
+        secret.setUrl(request.getUrl());
+        secret.setPassword(request.getPassword());
+        secret.setLogin(request.getLogin());
+
+        return secretRepository.save(secret);
     }
 }

@@ -1,2 +1,2 @@
-wsl bash -c "./apiTest.sh"
+wsl bash -c "./testing.sh"
 pause

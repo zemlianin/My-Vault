@@ -107,7 +107,7 @@ public class SecretController {
         try {
             var secret = secretDataAccess.getSecret(user, id);
 
-            secret.changeSecret(request);
+            secretDataAccess.changeSecret(secret, request);
 
             return new ResponseEntity<>(new SecretResponse(secret), HttpStatus.OK);
         } catch (NoSuchElementException ex) {

@@ -1,0 +1,7 @@
+if [[ "$updates" != '{"ok":true,"result":[]}' && -n "$LAST_MESSAGE_TEXT" ]]; then
+
+fi
+
+while true; do
+
+done
